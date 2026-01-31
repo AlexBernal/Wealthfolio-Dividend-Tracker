@@ -1,0 +1,27 @@
+{
+  "id": "dividend-tracker",
+  "name": "Dividend Tracker",
+  "version": "1.0.0",
+  "description": "Track and visualize dividend income across accounts, years, months, and securities",
+  "author": "Anonymous",
+  "sdkVersion": "2.0.0",
+  "main": "dist/addon.js",
+  "enabled": true,
+  "permissions": [
+    {
+      "category": "activities",
+      "functions": ["getAll"],
+      "purpose": "Access dividend activity data for visualization"
+    },
+    {
+      "category": "accounts",
+      "functions": ["getAll"],
+      "purpose": "Display account names in dividend breakdowns"
+    },
+    {
+      "category": "ui",
+      "functions": ["sidebar.addItem", "router.add"],
+      "purpose": "Add navigation items and routes to the sidebar"
+    }
+  ]
+}

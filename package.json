@@ -1,0 +1,39 @@
+{
+  "name": "wealthfolio-dividend-tracker-addon",
+  "version": "1.0.0",
+  "description": "Track and visualize dividend income across accounts, years, months, and securities",
+  "type": "module",
+  "main": "dist/addon.js",
+  "keywords": ["wealthfolio", "addon", "dividends", "income"],
+  "license": "MIT",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "dev:server": "wealthfolio dev",
+    "clean": "powershell -Command \"if (Test-Path dist/*.zip) { Remove-Item dist/*.zip }\"",
+    "package": "powershell -Command \"Compress-Archive -Path manifest.json,dist,README.md -DestinationPath dist/wealthfolio-dividend-tracker-addon-1.0.0.zip -Force\"",
+    "bundle": "pnpm build && pnpm clean && pnpm package",
+    "lint": "tsc --noEmit",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.7",
+    "@wealthfolio/addon-sdk": "^2.0.0",
+    "@wealthfolio/ui": "^2.0.0",
+    "date-fns": "^4.1.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "@wealthfolio/addon-dev-tools": "^2.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.1",
+    "@vitejs/plugin-react": "^5.0.2",
+    "rollup-plugin-external-globals": "^0.13.0",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5"
+  }
+}
