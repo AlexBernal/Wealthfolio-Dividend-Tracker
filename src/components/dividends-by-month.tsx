@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -8,13 +8,11 @@ import {
   ChartContainer,
   ChartLegend,
   ChartTooltip,
-  ChartTooltipContent,
   EmptyPlaceholder,
   formatAmount,
   Icons,
 } from '@wealthfolio/ui';
 import { Bar, CartesianGrid, ComposedChart, XAxis, YAxis } from '@wealthfolio/ui/chart';
-import { format, parseISO } from 'date-fns';
 import type { MonthlyDividendSummary } from '../types';
 import type { Account } from '@wealthfolio/addon-sdk';
 
@@ -172,36 +170,45 @@ export function DividendsByMonth({
                 />
                 <YAxis tick={{ fontSize: 11 }} />
                 <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value, name) => {
-                        const formattedValue = isBalanceHidden
-                          ? '••••'
-                          : formatAmount(Number(value), baseCurrency);
-                        const account = accounts.find((a) => a.id === name);
-                        return (
-                          <>
-                            <div
-                              className="border-border h-2.5 w-2.5 shrink-0 rounded-[2px]"
-                              style={{
-                                backgroundColor: accountSolidColors[name as string],
-                              }}
-                            />
-                            <div className="flex flex-1 items-center justify-between">
-                              <span className="text-muted-foreground">{account?.name || name}</span>
-                              <span className="text-foreground ml-2 font-mono font-medium tabular-nums">
-                                {formattedValue}
-                              </span>
-                            </div>
-                          </>
-                        );
-                      }}
-                    />
-                  }
-                  itemSorter={(a: any, b: any) => {
-                    const indexA = sortedAccounts.findIndex((acc) => acc.id === a.dataKey);
-                    const indexB = sortedAccounts.findIndex((acc) => acc.id === b.dataKey);
-                    return indexA - indexB;
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+
+                    // Sort payload to match legend order (reversed - first legend item at bottom)
+                    const sortedPayload = [...payload].sort((a, b) => {
+                      const indexA = sortedAccounts.findIndex((acc) => acc.id === a.dataKey);
+                      const indexB = sortedAccounts.findIndex((acc) => acc.id === b.dataKey);
+                      return indexB - indexA;
+                    });
+
+                    return (
+                      <div className="bg-background border border-border rounded-lg shadow-lg p-2 min-w-[180px]">
+                        <div className="font-medium mb-1.5">{label}</div>
+                        <div className="flex flex-col gap-1">
+                          {sortedPayload.map((item: any) => {
+                            const account = accounts.find((a) => a.id === item.dataKey || a.name === item.dataKey);
+                            const formattedValue = isBalanceHidden
+                              ? '••••'
+                              : formatAmount(Number(item.value), baseCurrency);
+                            return (
+                              <div key={item.dataKey} className="flex items-center gap-2">
+                                <div
+                                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                  style={{
+                                    backgroundColor: account ? accountSolidColors[account.id] : undefined,
+                                  }}
+                                />
+                                <span className="text-muted-foreground flex-1">
+                                  {account?.name || item.name}
+                                </span>
+                                <span className="text-foreground font-mono font-medium tabular-nums">
+                                  {formattedValue}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
                   }}
                 />
                 <ChartLegend
