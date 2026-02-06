@@ -59,28 +59,36 @@ export function DividendsByYear({
     return colors;
   }, [accounts]);
 
+  // Filter accounts to only include those with dividends
+  const accountsWithDividends = useMemo(() => {
+    return accounts.filter((account) => {
+      const total = yearlyData.reduce((sum, year) => sum + (year.byAccount[account.id] || 0), 0);
+      return total > 0;
+    });
+  }, [accounts, yearlyData]);
+
   const chartData = useMemo(() => {
     return yearlyData.map((yearData) => {
       const data: any = {
         year: yearData.year.toString(),
       };
 
-      accounts.forEach((account) => {
+      accountsWithDividends.forEach((account) => {
         data[account.id] = yearData.byAccount[account.id] || 0;
       });
 
       return data;
     });
-  }, [yearlyData, accounts]);
+  }, [yearlyData, accountsWithDividends]);
 
   // Sort accounts by total dividend amount (largest first for bottom-to-top stacking)
   const sortedAccounts = useMemo(() => {
-    return [...accounts].sort((a, b) => {
+    return [...accountsWithDividends].sort((a, b) => {
       const totalA = yearlyData.reduce((sum, year) => sum + (year.byAccount[a.id] || 0), 0);
       const totalB = yearlyData.reduce((sum, year) => sum + (year.byAccount[b.id] || 0), 0);
       return totalB - totalA; // Descending order (largest first)
     });
-  }, [accounts, yearlyData]);
+  }, [accountsWithDividends, yearlyData]);
 
   const chartConfig = useMemo(() => {
     const config: any = {};
@@ -231,7 +239,7 @@ export function DividendsByYear({
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-2 font-medium">Year</th>
-                  {accounts.map((account) => (
+                  {accountsWithDividends.map((account) => (
                     <th key={account.id} className="text-right p-2 font-medium">
                       {account.name}
                     </th>
@@ -243,7 +251,7 @@ export function DividendsByYear({
                 {yearlyData.map((yearData) => (
                   <tr key={yearData.year} className="border-b">
                     <td className="p-2">{yearData.year}</td>
-                    {accounts.map((account) => (
+                    {accountsWithDividends.map((account) => (
                       <td key={account.id} className="text-right p-2 font-mono tabular-nums">
                         {isBalanceHidden
                           ? '••••'
@@ -258,7 +266,7 @@ export function DividendsByYear({
                 {/* Grand Total Row */}
                 <tr className="font-semibold bg-muted/50">
                   <td className="p-2">Grand Total</td>
-                  {accounts.map((account) => {
+                  {accountsWithDividends.map((account) => {
                     const accountTotal = yearlyData.reduce(
                       (sum, yearData) => sum + (yearData.byAccount[account.id] || 0),
                       0

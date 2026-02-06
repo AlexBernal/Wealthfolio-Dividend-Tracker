@@ -80,6 +80,14 @@ export function DividendsByMonth({
     return monthlyData.filter((m) => m.year === selectedYear);
   }, [monthlyData, selectedYear]);
 
+  // Filter accounts to only include those with dividends for the selected year
+  const accountsWithDividends = useMemo(() => {
+    return accounts.filter((account) => {
+      const total = filteredMonthlyData.reduce((sum, month) => sum + (month.byAccount[account.id] || 0), 0);
+      return total > 0;
+    });
+  }, [accounts, filteredMonthlyData]);
+
   const chartData = useMemo(() => {
     // Create array of all 12 months
     const allMonths = Array.from({ length: 12 }, (_, i) => {
@@ -89,7 +97,7 @@ export function DividendsByMonth({
         monthNum: i + 1,
       };
 
-      accounts.forEach((account) => {
+      accountsWithDividends.forEach((account) => {
         data[account.id] = monthData?.byAccount[account.id] || 0;
       });
 
@@ -97,16 +105,16 @@ export function DividendsByMonth({
     });
 
     return allMonths;
-  }, [filteredMonthlyData, accounts]);
+  }, [filteredMonthlyData, accountsWithDividends]);
 
-  // Sort accounts by total dividend amount across all months (largest first)
+  // Sort accounts by total dividend amount for selected year (largest first)
   const sortedAccounts = useMemo(() => {
-    return [...accounts].sort((a, b) => {
-      const totalA = monthlyData.reduce((sum, month) => sum + (month.byAccount[a.id] || 0), 0);
-      const totalB = monthlyData.reduce((sum, month) => sum + (month.byAccount[b.id] || 0), 0);
+    return [...accountsWithDividends].sort((a, b) => {
+      const totalA = filteredMonthlyData.reduce((sum, month) => sum + (month.byAccount[a.id] || 0), 0);
+      const totalB = filteredMonthlyData.reduce((sum, month) => sum + (month.byAccount[b.id] || 0), 0);
       return totalB - totalA; // Descending order (largest first)
     });
-  }, [accounts, monthlyData]);
+  }, [accountsWithDividends, filteredMonthlyData]);
 
   const chartConfig = useMemo(() => {
     const config: any = {};
@@ -256,7 +264,7 @@ export function DividendsByMonth({
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2 font-medium">Month</th>
-                    {accounts.map((account) => (
+                    {accountsWithDividends.map((account) => (
                       <th key={account.id} className="text-right p-2 font-medium">
                         {account.name}
                       </th>
@@ -266,14 +274,14 @@ export function DividendsByMonth({
                 </thead>
                 <tbody>
                   {chartData.map((monthData) => {
-                    const total = accounts.reduce(
+                    const total = accountsWithDividends.reduce(
                       (sum, account) => sum + (monthData[account.id] || 0),
                       0
                     );
                     return (
                       <tr key={monthData.monthNum} className="border-b">
                         <td className="p-2">{monthData.month}</td>
-                        {accounts.map((account) => (
+                        {accountsWithDividends.map((account) => (
                           <td key={account.id} className="text-right p-2 font-mono tabular-nums">
                             {isBalanceHidden
                               ? '••••'
@@ -289,7 +297,7 @@ export function DividendsByMonth({
                   {/* Total Row */}
                   <tr className="font-semibold bg-muted/50">
                     <td className="p-2">Total</td>
-                    {accounts.map((account) => {
+                    {accountsWithDividends.map((account) => {
                       const accountTotal = chartData.reduce(
                         (sum, monthData) => sum + (monthData[account.id] || 0),
                         0
@@ -307,7 +315,7 @@ export function DividendsByMonth({
                             chartData.reduce((sum, monthData) => {
                               return (
                                 sum +
-                                accounts.reduce(
+                                accountsWithDividends.reduce(
                                   (s, account) => s + (monthData[account.id] || 0),
                                   0
                                 )
